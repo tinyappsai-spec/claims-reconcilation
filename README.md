@@ -4,6 +4,32 @@ Unified platform for reconciling healthcare claims and invoices. This project in
 
 ---
 
+## Docker Setup
+
+You can run both frontend and backend using Docker Compose:
+
+```bash
+docker-compose up --build
+```
+
+Generate Sample CSVs
+Windows:
+
+powershell
+
+mkdir C:\docker-output
+docker run --rm -e HOST_OUTPUT_DIR=/host -v C:\docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
+
+Mac/Linux:
+
+mkdir -p ~/docker-output
+docker run --rm -e HOST_OUTPUT_DIR=/host -v ~/docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
+CSV files will be saved to the mapped host folder.
+
+---
+
+start app by opening http://localhost:3000 in your browser
+
 ## Backend (FastAPI)
 
 Backend service for the **Claims Reconciliation System** built with **FastAPI**.
@@ -68,37 +94,6 @@ Local State: Individual UI components manage their own temporary state. Keeping 
 - `npm test`: Launches the test runner in interactive watch mode.
 - `npm run build`: Builds the app for production to the `build` folder.
 - `npm run eject`: **Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
----
-
-## Docker Setup
-
-You can run both frontend and backend using Docker Compose:
-
-```bash
-docker-compose up --build
-```
-
-Generate Sample CSVs
-Windows:
-
-powershell
-
-mkdir C:\docker-output
-docker run --rm -e HOST_OUTPUT_DIR=/host -v C:\docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
-
-Mac/Linux:
-
-mkdir -p ~/docker-output
-docker run --rm -e HOST_OUTPUT_DIR=/host -v ~/docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
-CSV files will be saved to the mapped host folder.
-
-## Project Structure
-
-- `backend/` — FastAPI backend
-- `frontend/` — React frontend
-
----
 
 ## License
 
