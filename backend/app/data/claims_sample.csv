@@ -1,0 +1,4 @@
+claim_id,patient_id,date_of_service,charges_amount
+c1,1,2023-01-01,100
+c2,2,2023-01-02,200
+c3,3,2023-01-03,300

@@ -16,6 +16,7 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true # needed for live reload on some Docker setups
     command: npm start

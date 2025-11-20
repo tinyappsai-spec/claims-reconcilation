@@ -1,0 +1,4 @@
+invoice_id,claim_id,transaction_value
+i1,c1,100
+i2,c2,250
+i3,c2,-50
