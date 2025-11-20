@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.env*
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+
+# Test coverage
+htmlcov/
+.coverage
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints
+
+# Misc
+*.swp
+*.swo
+
+# Frontend build
+build/
+dist/
+
+# Data files
+data/*.csv
+backend/app/data/*.csv

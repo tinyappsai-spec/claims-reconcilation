@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    container_name: claims-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/data
+    environment:
+      - PYTHONUNBUFFERED=1
+  frontend:
+    build: ./frontend
+    container_name: claims-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true # needed for live reload on some Docker setups
+    command: npm start
