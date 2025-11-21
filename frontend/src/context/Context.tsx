@@ -46,6 +46,7 @@ export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
   const [error, setError] = useState<Error | null>(null);
 
   const setResults = (data: ReconciliationResult[]) => {
+    console.log("Setting reconciliation results:", data);
     setReconciliation(data);
     setFiltered(data);
   };
@@ -79,13 +80,6 @@ export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
     if (preFiltered) {
       setFiltered(preFiltered);
       return;
-    }
-
-    // legacy slow-path (still supported for compatibility)
-    if (!patientName || patientName === "ALL") {
-      setFiltered(reconciliation);
-    } else {
-      setFiltered(reconciliation.filter((r) => r.patient_name === patientName));
     }
   };
 

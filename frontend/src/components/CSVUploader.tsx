@@ -116,6 +116,7 @@ const CSVUploader: React.FC = () => {
       setUploadError(
         Array.isArray(detail) ? detail.join(" | ") : detail || "Upload failed."
       );
+      handleClear();
     } finally {
       setLoading(false);
     }

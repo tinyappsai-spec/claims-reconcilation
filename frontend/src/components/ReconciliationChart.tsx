@@ -10,18 +10,12 @@ import {
 } from "@mui/material";
 import { useReconciliationContext } from "../context/Context";
 import BarReconciliationChart from "./charts/BarChart";
-import PieReconciliationChart from "./charts/PieChart";
+//import PieReconciliationChart from "./charts/PieChart";
 
 type ChartType = "BAR" | "PIE";
 
-interface Props {
-  onFilterChange: (status: string | null) => void;
-}
-
-const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
+const ReconciliationChart: React.FC = () => {
   const { reconciliation, updateFilter, filtered } = useReconciliationContext();
-
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [chartType, setChartType] = useState<ChartType>("BAR");
   const [selectedPatient, setSelectedPatient] = useState<string>("ALL");
 
@@ -42,35 +36,20 @@ const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
 
   const handlePatientChange = (name: string) => {
     setSelectedPatient(name);
-
     const rows = indexedByPatient[name] || [];
 
     updateFilter(name === "ALL" ? null : name, rows);
   };
 
   const chartData = useMemo(() => {
-    const counts: Record<string, number> = {
-      BALANCED: 0,
-      OVERPAID: 0,
-      UNDERPAID: 0,
-      "N/A": 0,
-    };
+    console.log("Recalculating chart data…");
+    const counts = { BALANCED: 0, OVERPAID: 0, UNDERPAID: 0, "N/A": 0 };
 
-    filtered.forEach((r) => {
-      counts[r.status]++;
-    });
+    for (const r of filtered) counts[r.status]++;
 
-    return Object.entries(counts).map(([status, count]) => ({
-      status,
-      count,
-    }));
+    return Object.entries(counts).map(([status, count]) => ({ status, count }));
   }, [filtered]);
 
-  const handleStatusSelect = (status: string | null) => {
-    const newStatus = selectedStatus === status ? null : status;
-    setSelectedStatus(newStatus);
-    onFilterChange(newStatus);
-  };
   return (
     <>
       {reconciliation.length > 0 && (
@@ -86,34 +65,35 @@ const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
               Bar Chart
             </Button>
 
-            {/* PATIENT DROPDOWN */}
-            <Select
+            <select
               data-testid="patient-select"
               value={selectedPatient}
               onChange={(e) => handlePatientChange(e.target.value)}
-              size="small"
+              style={{ padding: "6px 8px", borderRadius: 4 }}
             >
               {patientOptions.map((name) => (
-                <MenuItem key={name} value={name}>
+                <option key={name} value={name}>
                   {name === "ALL" ? "All Patients" : name}
-                </MenuItem>
+                </option>
               ))}
-            </Select>
+            </select>
           </Stack>
 
           <Paper sx={{ p: 2 }}>
             {chartType === "BAR" ? (
-              <BarReconciliationChart
-                data={chartData}
-                selectedStatus={selectedStatus}
-                onSelectStatus={handleStatusSelect}
-              />
+              <>
+                <BarReconciliationChart data={chartData} />
+              </>
             ) : (
+              <>
+                {/*
               <PieReconciliationChart
                 data={chartData}
                 selectedStatus={selectedStatus}
                 onSelectStatus={handleStatusSelect}
               />
+              */}
+              </>
             )}
           </Paper>
         </Box>

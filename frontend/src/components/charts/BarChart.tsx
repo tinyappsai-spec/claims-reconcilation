@@ -1,3 +1,4 @@
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -10,8 +11,6 @@ import {
 
 interface Props {
   data: { status: string; count: number }[];
-  selectedStatus: string | null;
-  onSelectStatus: (status: string | null) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -21,11 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
   "N/A": "#9e9e9e",
 };
 
-const BarReconciliationChart: React.FC<Props> = ({
-  data,
-  selectedStatus,
-  onSelectStatus,
-}) => {
+const BarReconciliationChart: React.FC<Props> = ({ data }) => {
   return (
     <ResponsiveContainer width="50%" height={300}>
       <BarChart data={data}>
@@ -36,16 +31,7 @@ const BarReconciliationChart: React.FC<Props> = ({
           {data.map((entry) => (
             <Cell
               key={entry.status}
-              fill={
-                selectedStatus === entry.status
-                  ? "#1976d2"
-                  : STATUS_COLORS[entry.status]
-              }
-              onClick={() =>
-                onSelectStatus(
-                  selectedStatus === entry.status ? null : entry.status
-                )
-              }
+              fill={STATUS_COLORS[entry.status]}
               style={{ cursor: "pointer" }}
             />
           ))}
@@ -55,4 +41,4 @@ const BarReconciliationChart: React.FC<Props> = ({
   );
 };
 
-export default BarReconciliationChart;
+export default React.memo(BarReconciliationChart);

@@ -6,8 +6,6 @@ import ReconciliationChart from "../components/ReconciliationChart";
 import DataTable from "../components/DataTable";
 
 const Home: React.FC = () => {
-  const [filterStatus, setFilterStatus] = useState<string | null>(null);
-
   return (
     <Container maxWidth="lg">
       <Typography variant="h4" gutterBottom mt={3}>
@@ -15,8 +13,8 @@ const Home: React.FC = () => {
       </Typography>
       <CSVUploader />
       <Dashboard />
-      <ReconciliationChart onFilterChange={setFilterStatus} />
-      <DataTable />
+      <ReconciliationChart />
+      {<DataTable />}
     </Container>
   );
 };
