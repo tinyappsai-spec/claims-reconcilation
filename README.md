@@ -20,15 +20,24 @@ These commands are used to generate sample CSV data by running the `claims-recon
 
 Use the following commands in a PowerShell terminal:
 
-````powershell
+```powershell
 mkdir C:\docker-output
 cd C:\docker-output
 docker run --rm -e HOST_OUTPUT_DIR=/host -v C:\docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
+
+```
+
+## 2\. Mac / Linux
+
+Use the following commands in a bash Terminal:
 
 ```bash
 mkdir -p ~/docker-output
 cd ~/docker-output
 docker run --rm -e HOST_OUTPUT_DIR=/host -v ~/docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
+```
+
+## 3\. Output Location:
 
 Output Location:
 
@@ -56,6 +65,8 @@ All operations are **in-memory**, making it lightweight and ideal for local test
    ```bash
    git clone <repo-url>
    cd claims-reconciliation/backend
+   ```
+
 ````
 
 2. Create and activate a virtual environment:
@@ -107,3 +118,4 @@ Local State: Individual UI components manage their own temporary state. Keeping 
 ## License
 
 MIT
+````
