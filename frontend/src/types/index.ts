@@ -18,6 +18,7 @@ export interface ReconciliationResult {
   charges_amount: number;
   date_of_service: string;
   invoice_total: number | null;
+  credit: number | null;
   status: "BALANCED" | "OVERPAID" | "UNDERPAID" | "N/A";
 }
 

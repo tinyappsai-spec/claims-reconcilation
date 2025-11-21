@@ -11,6 +11,7 @@ class ReconciliationResult(BaseModel):
     charges_amount: float
     invoice_total: Optional[float]
     status: str  # BALANCED, OVERPAID, UNDERPAID, N/A
+    credit: Optional[float] = None
 
 class SummaryStats(BaseModel):
     total_claims: int

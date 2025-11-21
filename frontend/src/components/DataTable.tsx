@@ -10,6 +10,7 @@ interface Row {
   date_of_service: string;
   charges_amount: number;
   invoice_total?: number | null;
+  credit?: number | null;
   status: "BALANCED" | "OVERPAID" | "UNDERPAID" | "N/A";
 }
 
@@ -48,6 +49,7 @@ const DataTable: React.FC = () => {
     charges_amount: r.charges_amount,
     invoice_total: r.invoice_total ?? null,
     status: r.status,
+    credit_total: r.credit ?? null,
   }));
 
   const filteredRows = filterStatus
@@ -79,10 +81,7 @@ const DataTable: React.FC = () => {
       headerName: "Invoice Total",
       width: 150,
       filterable: true,
-      valueGetter: (params: any) => {
-        if (!params?.row) return "N/A";
-        return params.row.invoice_total ?? "N/A";
-      },
+      valueGetter: (params: any) => (params ? params : "N/A"),
     },
     {
       field: "status",
@@ -101,6 +100,14 @@ const DataTable: React.FC = () => {
           {params.value}
         </Typography>
       ),
+    },
+    {
+      field: "credit_total",
+      headerName: "Credit",
+      width: 150,
+      filterable: true,
+      valueGetter: (params: any) =>
+        params !== null && params !== undefined ? params : "N/A",
     },
   ];
 

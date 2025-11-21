@@ -6,23 +6,8 @@ import React, {
   useMemo,
 } from "react";
 
-export interface ReconciliationResult {
-  claim_id: string;
-  patient_id: string;
-  patient_name: string;
-  date_of_service: string;
-  charges_amount: number;
-  invoice_total?: number | null;
-  status: "BALANCED" | "OVERPAID" | "UNDERPAID" | "N/A";
-}
-
-export interface SummaryStats {
-  total_claims: number;
-  balanced: number;
-  overpaid: number;
-  underpaid: number;
-  no_invoices: number;
-}
+import { ReconciliationResult } from "../types";
+import { SummaryStats } from "../types";
 
 interface ReconciliationContextType {
   reconciliation: ReconciliationResult[];

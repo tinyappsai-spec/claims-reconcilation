@@ -51,3 +51,6 @@ def test_reconcile_balanced():
 
     # Check charges_amount
     assert result.charges_amount == 100.0
+
+    # Check credit (should be 0 for balanced)
+    assert result.credit == 0

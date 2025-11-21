@@ -109,7 +109,7 @@ const CSVUploader: React.FC = () => {
       const { data } = await apiClient.post("/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+      console.log("Upload response data:", data);
       setResults(data.reconciliation || []);
     } catch (err: any) {
       const detail = err.response?.data?.detail;
