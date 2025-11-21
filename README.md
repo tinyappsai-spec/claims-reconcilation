@@ -23,7 +23,7 @@ Use the following commands in a PowerShell terminal:
 ```powershell
 mkdir C:\docker-output
 cd C:\docker-output
-docker run --rm -e HOST_OUTPUT_DIR=/host -v C:\docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
+docker run --rm -e HOST_OUTPUT_DIR=/host -v C:\docker-output:/host <docker image> python /app/data/generate_data.py
 
 ```
 
@@ -34,7 +34,7 @@ Use the following commands in a bash Terminal:
 ```bash
 mkdir -p ~/docker-output
 cd ~/docker-output
-docker run --rm -e HOST_OUTPUT_DIR=/host -v ~/docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
+docker run --rm -e HOST_OUTPUT_DIR=/host -v ~/docker-output:/host <docker image> python /app/data/generate_data.py
 ```
 
 ## 3\. Output Location:
