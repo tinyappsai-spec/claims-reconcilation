@@ -9,20 +9,28 @@ const Dashboard: React.FC = () => {
 
   if (!summary) return <Typography>No summary data available.</Typography>;
 
-  // Convert summary object to entries for easier mapping
   const summaryItems = Object.entries(summary);
+
+  const formatKey = (key: string) =>
+    key
+      .replace(/_/g, " ") // replace underscores
+      .replace(/([A-Z])/g, " $1") // spaces before capital letters
+      .replace(/\s+/g, " ") // normalize spacing
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase()); // capitalize words
 
   return (
     <Box sx={{ p: 2 }}>
       <Typography variant="h5" gutterBottom>
         Summary
       </Typography>
+
       <Grid container spacing={2}>
         {summaryItems.map(([key, value]) => (
-          <Grid>
+          <Grid key={key}>
             <Paper sx={{ p: 2, textAlign: "center" }}>
               <Typography variant="subtitle2" color="textSecondary">
-                {key.replace(/([A-Z])/g, " $1")}
+                {formatKey(key)}
               </Typography>
               <Typography variant="h6">{value}</Typography>
             </Paper>

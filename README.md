@@ -12,19 +12,27 @@ You can run both frontend and backend using Docker Compose:
 docker-compose up --build
 ```
 
-Generate Sample CSVs
-Windows:
+# Data Generation Commands
 
-powershell
+These commands are used to generate sample CSV data by running the `claims-reconciliation-backend` Docker image. The generated CSV files will be saved to a mapped output directory on your host machine.
 
+## 1\. PowerShell (Windows)
+
+Use the following commands in a PowerShell terminal:
+
+````powershell
 mkdir C:\docker-output
+cd C:\docker-output
 docker run --rm -e HOST_OUTPUT_DIR=/host -v C:\docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
 
-Mac/Linux:
-
+```bash
 mkdir -p ~/docker-output
+cd ~/docker-output
 docker run --rm -e HOST_OUTPUT_DIR=/host -v ~/docker-output:/host claims-reconciliation-backend python /app/data/generate_data.py
-CSV files will be saved to the mapped host folder.
+
+Output Location:
+
+CSV files will be saved to the mapped host folder (C:\docker-output on Windows or ~/docker-output on Mac/Linux) after the command completes.
 
 ---
 
@@ -48,7 +56,8 @@ All operations are **in-memory**, making it lightweight and ideal for local test
    ```bash
    git clone <repo-url>
    cd claims-reconciliation/backend
-   ```
+````
+
 2. Create and activate a virtual environment:
    ```bash
    python -m venv .venv

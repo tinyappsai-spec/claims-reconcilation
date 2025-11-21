@@ -19,27 +19,35 @@ interface Props {
 }
 
 const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
-  const { reconciliation, filtered, updateFilter } = useReconciliationContext();
+  const { reconciliation, updateFilter, filtered } = useReconciliationContext();
 
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [chartType, setChartType] = useState<ChartType>("BAR");
   const [selectedPatient, setSelectedPatient] = useState<string>("ALL");
 
-  /** Build dropdown options */
-  const patientOptions = useMemo(() => {
-    const patients = Array.from(
-      new Set(reconciliation.map((r) => r.patient_name))
-    );
-    return ["ALL", ...patients];
+  const indexedByPatient = useMemo(() => {
+    const map: Record<string, any[]> = { ALL: reconciliation };
+
+    reconciliation.forEach((row) => {
+      if (!map[row.patient_name]) map[row.patient_name] = [];
+      map[row.patient_name].push(row);
+    });
+
+    return map;
   }, [reconciliation]);
 
-  /** When user selects patient → update global filter */
+  const patientOptions = useMemo(() => {
+    return Object.keys(indexedByPatient);
+  }, [indexedByPatient]);
+
   const handlePatientChange = (name: string) => {
     setSelectedPatient(name);
-    updateFilter(name === "ALL" ? null : name);
+
+    const rows = indexedByPatient[name] || [];
+
+    updateFilter(name === "ALL" ? null : name, rows);
   };
 
-  /** Status counts for charts (based on filtered list!) */
   const chartData = useMemo(() => {
     const counts: Record<string, number> = {
       BALANCED: 0,
@@ -58,13 +66,11 @@ const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
     }));
   }, [filtered]);
 
-  /** When clicking a bar/pie segment */
   const handleStatusSelect = (status: string | null) => {
     const newStatus = selectedStatus === status ? null : status;
     setSelectedStatus(newStatus);
     onFilterChange(newStatus);
   };
-
   return (
     <>
       {reconciliation.length > 0 && (
@@ -72,7 +78,7 @@ const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
           <Stack direction="row" spacing={2} alignItems="center" mb={2}>
             <Typography variant="h6">Reconciliation Chart</Typography>
 
-            {/* CHART TYPE BUTTONS */}
+            {/* CHART TYPE BUTTON */}
             <Button
               variant={chartType === "BAR" ? "contained" : "outlined"}
               onClick={() => setChartType("BAR")}
@@ -82,7 +88,7 @@ const ReconciliationChart: React.FC<Props> = ({ onFilterChange }) => {
 
             {/* PATIENT DROPDOWN */}
             <Select
-              data-testid="patient-select" // <- add this
+              data-testid="patient-select"
               value={selectedPatient}
               onChange={(e) => handlePatientChange(e.target.value)}
               size="small"

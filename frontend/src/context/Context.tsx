@@ -31,7 +31,11 @@ interface ReconciliationContextType {
   setResults: (data: ReconciliationResult[]) => void;
 
   summary: SummaryStats | null;
-  updateFilter: (patientName: string | null) => void;
+
+  updateFilter: (
+    patientName: string | null,
+    preFiltered?: ReconciliationResult[]
+  ) => void;
 
   loading: boolean;
   setLoading: (loading: boolean) => void;
@@ -58,12 +62,12 @@ export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
 
   const setResults = (data: ReconciliationResult[]) => {
     setReconciliation(data);
-    setFiltered(data); // default: filtered = all results
+    setFiltered(data);
   };
 
-  // Summary always calculated from the *filtered* dataset
   const summary: SummaryStats | null = useMemo(() => {
     if (!filtered.length) return null;
+
     return filtered.reduce<SummaryStats>(
       (acc, r) => {
         acc.total_claims++;
@@ -83,8 +87,16 @@ export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
     );
   }, [filtered]);
 
-  // Called from UI to apply filter
-  const updateFilter = (patientName: string | null) => {
+  const updateFilter = (
+    patientName: string | null,
+    preFiltered?: ReconciliationResult[]
+  ) => {
+    if (preFiltered) {
+      setFiltered(preFiltered);
+      return;
+    }
+
+    // legacy slow-path (still supported for compatibility)
     if (!patientName || patientName === "ALL") {
       setFiltered(reconciliation);
     } else {
