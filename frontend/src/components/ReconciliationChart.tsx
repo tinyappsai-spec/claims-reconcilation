@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -15,9 +15,11 @@ import BarReconciliationChart from "./charts/BarChart";
 type ChartType = "BAR" | "PIE";
 
 const ReconciliationChart: React.FC = () => {
-  const { reconciliation, updateFilter, filtered } = useReconciliationContext();
+  const { reconciliation, updateFilter, filtered, selectedPatient } =
+    useReconciliationContext();
   const [chartType, setChartType] = useState<ChartType>("BAR");
-  const [selectedPatient, setSelectedPatient] = useState<string>("ALL");
+  const [selectedPatientDropDown, setselectedPatientDropDown] =
+    useState<string>("ALL");
 
   const indexedByPatient = useMemo(() => {
     const map: Record<string, any[]> = { ALL: reconciliation };
@@ -35,7 +37,7 @@ const ReconciliationChart: React.FC = () => {
   }, [indexedByPatient]);
 
   const handlePatientChange = (name: string) => {
-    setSelectedPatient(name);
+    setselectedPatientDropDown(name);
     const rows = indexedByPatient[name] || [];
 
     updateFilter(name === "ALL" ? null : name, rows);
@@ -49,6 +51,10 @@ const ReconciliationChart: React.FC = () => {
 
     return Object.entries(counts).map(([status, count]) => ({ status, count }));
   }, [filtered]);
+
+  useEffect(() => {
+    handlePatientChange(selectedPatient ?? "ALL");
+  }, [selectedPatient]);
 
   return (
     <>
@@ -67,7 +73,7 @@ const ReconciliationChart: React.FC = () => {
 
             <select
               data-testid="patient-select"
-              value={selectedPatient}
+              value={selectedPatientDropDown}
               onChange={(e) => handlePatientChange(e.target.value)}
               style={{ padding: "6px 8px", borderRadius: 4 }}
             >

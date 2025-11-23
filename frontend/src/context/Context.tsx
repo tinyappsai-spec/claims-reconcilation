@@ -12,6 +12,8 @@ import { SummaryStats } from "../types";
 interface ReconciliationContextType {
   reconciliation: ReconciliationResult[];
   filtered: ReconciliationResult[];
+  selectedPatient: string | null | undefined;
+  setSelectedPatient: (name: string | null) => void;
   setReconciliation: (data: ReconciliationResult[]) => void;
   setResults: (data: ReconciliationResult[]) => void;
 
@@ -41,6 +43,9 @@ export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
     []
   );
   const [filtered, setFiltered] = useState<ReconciliationResult[]>([]);
+  const [selectedPatient, setSelectedPatient] = useState<
+    string | null | undefined
+  >(null);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -104,6 +109,8 @@ export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
         error,
         setError,
         clear,
+        selectedPatient,
+        setSelectedPatient,
       }}
     >
       {children}

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import React, { useState, useMemo, useEffect } from "react";
+import { DataGrid, GridColDef, GridFilterModel } from "@mui/x-data-grid";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useReconciliationContext } from "../context/Context";
 
@@ -21,9 +21,12 @@ const statusColors: Record<Row["status"], string> = {
   "N/A": "grey",
 };
 
+const initialFilterModel: GridFilterModel = { items: [] };
+
 const DataTable: React.FC = () => {
-  const { reconciliation, loading, error } = useReconciliationContext();
-  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const { reconciliation, loading, error, filtered, setSelectedPatient } =
+    useReconciliationContext();
+  const [filterModel, setFilterModel] = React.useState(initialFilterModel);
 
   const mappedRows: Row[] = useMemo(() => {
     return (reconciliation ?? []).map((r) => ({
@@ -37,12 +40,6 @@ const DataTable: React.FC = () => {
       credit_total: r.credit ?? null,
     }));
   }, [reconciliation]);
-
-  const filteredRows = useMemo(() => {
-    return filterStatus
-      ? mappedRows.filter((r) => r.status === filterStatus)
-      : mappedRows;
-  }, [filterStatus, mappedRows]);
 
   const columns: GridColDef<Row>[] = useMemo(
     () => [
@@ -83,6 +80,56 @@ const DataTable: React.FC = () => {
     []
   );
 
+  useEffect(() => {
+    let newFilterModel: GridFilterModel;
+    console.log(filtered);
+    if (filtered.length === 0) {
+      newFilterModel = { items: [] };
+      setFilterModel(newFilterModel);
+      return;
+    }
+    if (
+      filtered[0].patient_name !== filtered[filtered.length - 1].patient_name
+    ) {
+      newFilterModel = {
+        items: filterModel.items.filter(
+          (item) => item.field !== "patient_name"
+        ),
+      };
+    } else {
+      // 1. Get all current filters *except* the existing patient filter
+      const existingFilters = filterModel.items.filter(
+        (item) => item.field !== "patient_name"
+      );
+
+      // 2. Add the new patient filter
+      newFilterModel = {
+        items: [
+          ...existingFilters,
+          {
+            field: "patient_name",
+            operator: "equals",
+            value: filtered[0].patient_name,
+          },
+        ],
+      };
+    }
+
+    // Set the new model
+    setFilterModel(newFilterModel);
+  }, [filtered]);
+
+  const handleCellClick = (params: any) => {
+    console.log(params);
+    if (params.field === "patient_name") {
+      setSelectedPatient(params.value);
+    }
+  };
+  const handleDataGridFilterChange = (newModel: GridFilterModel) => {
+    // This function runs when the user changes filters using the column menus
+    setFilterModel(newModel);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
@@ -101,15 +148,18 @@ const DataTable: React.FC = () => {
   return (
     <Box sx={{ height: 600, width: "100%" }}>
       <DataGrid
-        rows={filteredRows}
+        rows={mappedRows}
         columns={columns}
         getRowId={(row) => row.claim_id}
         pageSizeOptions={[10, 25, 50]}
         initialState={{
           pagination: { paginationModel: { pageSize: 10, page: 0 } },
         }}
+        filterModel={filterModel}
         disableRowSelectionOnClick
         autoHeight
+        onFilterModelChange={handleDataGridFilterChange}
+        onCellClick={handleCellClick}
       />
     </Box>
   );
