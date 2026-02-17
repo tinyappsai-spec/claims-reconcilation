@@ -6,5 +6,5 @@ router = APIRouter()
 @router.get("/summary")
 async def get_summary():
     service = get_service()
-    results = service.reconcile()
-    return service.summary(results)
+    analytics = service.get_analytics()
+    return analytics if analytics else {"detail": "No results cached. Please upload data first."}

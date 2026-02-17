@@ -1,7 +1,20 @@
-import React, { useState, useMemo } from "react";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import React, { useMemo } from "react";
+import { TableVirtuoso } from "react-virtuoso";
+import { useInfiniteReconciliation } from "../api/useReconciliation";
 import { useReconciliationContext } from "../context/Context";
+import { useMutationState } from "@tanstack/react-query";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Box,
+  CircularProgress,
+  Typography
+} from "@mui/material";
 
 interface Row {
   claim_id: string;
@@ -22,96 +35,106 @@ const statusColors: Record<Row["status"], string> = {
 };
 
 const DataTable: React.FC = () => {
-  const { reconciliation, loading, error } = useReconciliationContext();
-  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const { totalRecords } = useReconciliationContext();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteReconciliation();
 
-  const mappedRows: Row[] = useMemo(() => {
-    return (reconciliation ?? []).map((r) => ({
-      claim_id: r.claim_id,
-      patient_id: String(r.patient_id),
-      patient_name: r.patient_name ?? `Patient ${r.patient_id}`,
-      date_of_service: r.date_of_service ?? "",
-      charges_amount: r.charges_amount,
-      invoice_total: r.invoice_total ?? null,
-      status: r.status,
-      credit_total: r.credit ?? null,
-    }));
-  }, [reconciliation]);
+  // Track upload mutation state
+  const uploadStatus = useMutationState({
+    filters: { mutationKey: ["uploadClaims"] },
+    select: (mutation) => mutation.state.status,
+  });
 
-  const filteredRows = useMemo(() => {
-    return filterStatus
-      ? mappedRows.filter((r) => r.status === filterStatus)
-      : mappedRows;
-  }, [filterStatus, mappedRows]);
+  const isUploading = uploadStatus.includes("pending");
+  const uploadError = uploadStatus.length > 0 && uploadStatus[uploadStatus.length - 1] === "error";
 
-  const columns: GridColDef<Row>[] = useMemo(
-    () => [
-      { field: "claim_id", headerName: "Claim ID", width: 150 },
-      { field: "patient_name", headerName: "Patient Name", width: 200 },
-      { field: "date_of_service", headerName: "Date of Service", width: 150 },
-      { field: "charges_amount", headerName: "Charges", width: 120 },
-      {
-        field: "invoice_total",
-        headerName: "Invoice Total",
-        width: 150,
-        valueGetter: (params: any) => params ?? "N/A",
-      },
-      {
-        field: "status",
-        headerName: "Status",
-        width: 150,
-        type: "singleSelect",
-        valueOptions: ["BALANCED", "OVERPAID", "UNDERPAID", "N/A"],
-        renderCell: (params) => (
-          <Typography
-            sx={{
-              color: statusColors[params.value as Row["status"]],
-              fontWeight: "normal",
-            }}
-          >
-            {params.value}
-          </Typography>
-        ),
-      },
-      {
-        field: "credit_total",
-        headerName: "Credit",
-        width: 150,
-        valueGetter: (params: any) => params ?? "N/A",
-      },
-    ],
-    []
-  );
+  const allRows = useMemo(() => {
+    return data?.pages.flatMap(page => page.data) ?? [];
+  }, [data]);
 
-  if (loading) {
+  if (isUploading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Processing records...</Typography>
       </Box>
     );
   }
 
-  if (error) {
+  if (uploadError) {
     return (
-      <Typography color="error">
-        Error loading reconciliation data: {error.message}
+      <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
+        Error processing reconciliation data. Please try again.
       </Typography>
     );
   }
+
+  if (totalRecords === 0) return null;
+
   return (
-    <Box sx={{ height: 600, width: "100%" }}>
-      <DataGrid
-        rows={filteredRows}
-        columns={columns}
-        getRowId={(row) => row.claim_id}
-        pageSizeOptions={[10, 25, 50]}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 10, page: 0 } },
+    <Paper style={{ height: 600, width: '100%', overflow: 'hidden' }}>
+      <TableVirtuoso
+        data={allRows}
+        endReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
         }}
-        disableRowSelectionOnClick
-        autoHeight
+        components={{
+          Table: (props) => (
+            <Table {...props} stickyHeader style={{ borderCollapse: 'separate' }} />
+          ),
+          TableHead: TableHead,
+          TableRow: TableRow,
+          TableBody: React.forwardRef((props, ref) => (
+            <TableBody {...props} ref={ref} />
+          )),
+          Scroller: TableContainer,
+        }}
+        fixedHeaderContent={() => (
+          <TableRow>
+            <TableCell style={{ width: 150, background: 'white', fontWeight: 'bold' }}>Claim ID</TableCell>
+            <TableCell style={{ width: 200, background: 'white', fontWeight: 'bold' }}>Patient Name</TableCell>
+            <TableCell style={{ width: 150, background: 'white', fontWeight: 'bold' }}>Date of Service</TableCell>
+            <TableCell style={{ width: 120, background: 'white', fontWeight: 'bold' }}>Charges</TableCell>
+            <TableCell style={{ width: 150, background: 'white', fontWeight: 'bold' }}>Invoice Total</TableCell>
+            <TableCell style={{ width: 150, background: 'white', fontWeight: 'bold' }}>Status</TableCell>
+            <TableCell style={{ width: 150, background: 'white', fontWeight: 'bold' }}>Credit</TableCell>
+          </TableRow>
+        )}
+        itemContent={(index, row: Row) => (
+          <>
+            <TableCell style={{ width: 150 }}>{row.claim_id}</TableCell>
+            <TableCell style={{ width: 200 }}>{row.patient_name ?? `Patient ${row.patient_id}`}</TableCell>
+            <TableCell style={{ width: 150 }}>{row.date_of_service}</TableCell>
+            <TableCell style={{ width: 120 }}>{row.charges_amount}</TableCell>
+            <TableCell style={{ width: 150 }}>{row.invoice_total ?? "N/A"}</TableCell>
+            <TableCell style={{ width: 150 }}>
+              <Typography
+                sx={{
+                  color: statusColors[row.status],
+                  fontWeight: "normal",
+                  fontSize: '0.875rem'
+                }}
+              >
+                {row.status}
+              </Typography>
+            </TableCell>
+            <TableCell style={{ width: 150 }}>{row.credit ?? "N/A"}</TableCell>
+          </>
+        )}
       />
-    </Box>
+      {isFetchingNextPage && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 1, background: '#f5f5f5' }}>
+          <CircularProgress size={20} />
+          <Typography variant="body2" sx={{ ml: 1 }}>Loading more...</Typography>
+        </Box>
+      )}
+    </Paper>
   );
 };
 

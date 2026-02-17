@@ -10,23 +10,10 @@ import { ReconciliationResult } from "../types";
 import { SummaryStats } from "../types";
 
 interface ReconciliationContextType {
-  reconciliation: ReconciliationResult[];
-  filtered: ReconciliationResult[];
-  setReconciliation: (data: ReconciliationResult[]) => void;
-  setResults: (data: ReconciliationResult[]) => void;
-
-  summary: SummaryStats | null;
-
-  updateFilter: (
-    patientName: string | null,
-    preFiltered?: ReconciliationResult[]
-  ) => void;
-
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
-  error?: Error | null;
-  setError: (error: Error | null) => void;
-
+  analytics: any | null; // Full analytics object from backend
+  totalRecords: number;
+  setAnalytics: (data: any) => void;
+  setTotalRecords: (total: number) => void;
   clear: () => void;
 }
 
@@ -37,72 +24,21 @@ const ReconciliationContext = createContext<ReconciliationContextType | null>(
 export const ReconciliationProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [reconciliation, setReconciliation] = useState<ReconciliationResult[]>(
-    []
-  );
-  const [filtered, setFiltered] = useState<ReconciliationResult[]>([]);
-
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
-
-  const setResults = (data: ReconciliationResult[]) => {
-    console.log("Setting reconciliation results:", data);
-    setReconciliation(data);
-    setFiltered(data);
-  };
-
-  const summary: SummaryStats | null = useMemo(() => {
-    if (!filtered.length) return null;
-
-    return filtered.reduce<SummaryStats>(
-      (acc, r) => {
-        acc.total_claims++;
-        if (r.status === "BALANCED") acc.balanced++;
-        if (r.status === "OVERPAID") acc.overpaid++;
-        if (r.status === "UNDERPAID") acc.underpaid++;
-        if (r.status === "N/A") acc.no_invoices++;
-        return acc;
-      },
-      {
-        total_claims: 0,
-        balanced: 0,
-        overpaid: 0,
-        underpaid: 0,
-        no_invoices: 0,
-      }
-    );
-  }, [filtered]);
-
-  const updateFilter = (
-    patientName: string | null,
-    preFiltered?: ReconciliationResult[]
-  ) => {
-    if (preFiltered) {
-      setFiltered(preFiltered);
-      return;
-    }
-  };
+  const [analytics, setAnalytics] = useState<any | null>(null);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
 
   const clear = () => {
-    setReconciliation([]);
-    setFiltered([]);
-    setLoading(false);
-    setError(null);
+    setAnalytics(null);
+    setTotalRecords(0);
   };
 
   return (
     <ReconciliationContext.Provider
       value={{
-        reconciliation,
-        filtered,
-        setReconciliation,
-        setResults,
-        summary,
-        updateFilter,
-        loading,
-        setLoading,
-        error,
-        setError,
+        analytics,
+        totalRecords,
+        setAnalytics,
+        setTotalRecords,
         clear,
       }}
     >

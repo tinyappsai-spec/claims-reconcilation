@@ -12,6 +12,9 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ErrorIcon from "@mui/icons-material/Error";
 import apiClient from "../api/apiClient";
 import { useReconciliationContext } from "../context/Context";
+import { useUploadClaims } from "../api/useReconciliation";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 const REQUIRED_CLAIMS_COLUMNS = [
   "claim_id",
@@ -25,15 +28,17 @@ const REQUIRED_INVOICE_COLUMNS = [
   "transaction_value",
 ];
 
+
 const CSVUploader: React.FC = () => {
   const [claimsFile, setClaimsFile] = useState<File | null>(null);
   const [invoicesFile, setInvoicesFile] = useState<File | null>(null);
   const [claimsValid, setClaimsValid] = useState<boolean | null>(null);
   const [invoicesValid, setInvoicesValid] = useState<boolean | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const { reconciliation, setResults, clear } = useReconciliationContext();
+  const { totalRecords, setAnalytics, setTotalRecords, clear } = useReconciliationContext();
+  const uploadMutation = useUploadClaims();
+  const queryClient = useQueryClient();
 
   const claimsInputRef = useRef<HTMLInputElement>(null);
   const invoicesInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +54,8 @@ const CSVUploader: React.FC = () => {
     if (invoicesInputRef.current) invoicesInputRef.current.value = "";
 
     clear();
-    setLoading(false);
+    uploadMutation.reset();
+    queryClient.invalidateQueries({ queryKey: ["reconciliation"] });
   };
 
   const validateCsv = async (file: File, requiredColumns: string[]) => {
@@ -99,30 +105,28 @@ const CSVUploader: React.FC = () => {
   const handleUpload = async () => {
     if (!claimsFile || !invoicesFile || !claimsValid || !invoicesValid) return;
     setUploadError(null);
-    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("claims", claimsFile);
+    formData.append("invoices", invoicesFile);
 
     try {
-      const formData = new FormData();
-      formData.append("claims", claimsFile);
-      formData.append("invoices", invoicesFile);
-
-      const { data } = await apiClient.post("/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const data = await uploadMutation.mutateAsync(formData);
       console.log("Upload response data:", data);
-      setResults(data.reconciliation || []);
+      if (data.summary) setAnalytics(data.summary);
+      if (data.total_records) setTotalRecords(data.total_records);
+      queryClient.invalidateQueries({ queryKey: ["reconciliation"] });
     } catch (err: any) {
+      console.error("Upload error:", err);
       const detail = err.response?.data?.detail;
       setUploadError(
         Array.isArray(detail) ? detail.join(" | ") : detail || "Upload failed."
       );
-      handleClear();
-    } finally {
-      setLoading(false);
     }
   };
 
   const isReadyToUpload = claimsValid && invoicesValid;
+  const loading = uploadMutation.isPending;
 
   return (
     <Paper sx={{ p: 3, mb: 4 }}>
@@ -202,7 +206,7 @@ const CSVUploader: React.FC = () => {
             variant="contained"
             color="secondary"
             onClick={handleClear}
-            disabled={reconciliation.length === 0}
+            disabled={totalRecords === 0}
           >
             Clear Results
           </Button>

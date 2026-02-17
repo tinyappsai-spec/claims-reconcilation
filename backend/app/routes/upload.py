@@ -43,8 +43,10 @@ async def upload_files(
 
     # --- Perform reconciliation if both datasets exist ---
     if service.claims is not None and service.invoices is not None:
-        reconciliation_data = service.reconcile()
-        response["reconciliation"] = reconciliation_data
+        service.reconcile()
+        analytics = service.get_analytics()
+        response["summary"] = analytics
+        response["total_records"] = analytics.get("summary", {}).get("total", 0)
     else:
         response["reconciliation"] = (
             "Not performed — both claims and invoices are required."

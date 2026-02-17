@@ -15,44 +15,16 @@ import BarReconciliationChart from "./charts/BarChart";
 type ChartType = "BAR" | "PIE";
 
 const ReconciliationChart: React.FC = () => {
-  const { reconciliation, updateFilter, filtered } = useReconciliationContext();
+  const { analytics, totalRecords } = useReconciliationContext();
   const [chartType, setChartType] = useState<ChartType>("BAR");
-  const [selectedPatient, setSelectedPatient] = useState<string>("ALL");
-
-  const indexedByPatient = useMemo(() => {
-    const map: Record<string, any[]> = { ALL: reconciliation };
-
-    reconciliation.forEach((row) => {
-      if (!map[row.patient_name]) map[row.patient_name] = [];
-      map[row.patient_name].push(row);
-    });
-
-    return map;
-  }, [reconciliation]);
-
-  const patientOptions = useMemo(() => {
-    return Object.keys(indexedByPatient);
-  }, [indexedByPatient]);
-
-  const handlePatientChange = (name: string) => {
-    setSelectedPatient(name);
-    const rows = indexedByPatient[name] || [];
-
-    updateFilter(name === "ALL" ? null : name, rows);
-  };
 
   const chartData = useMemo(() => {
-    console.log("Recalculating chart data…");
-    const counts = { BALANCED: 0, OVERPAID: 0, UNDERPAID: 0, "N/A": 0 };
-
-    for (const r of filtered) counts[r.status]++;
-
-    return Object.entries(counts).map(([status, count]) => ({ status, count }));
-  }, [filtered]);
+    return analytics?.status_distribution || [];
+  }, [analytics]);
 
   return (
     <>
-      {reconciliation.length > 0 && (
+      {totalRecords > 0 && (
         <Box mb={3}>
           <Stack direction="row" spacing={2} alignItems="center" mb={2}>
             <Typography variant="h6">Reconciliation Chart</Typography>
@@ -64,37 +36,10 @@ const ReconciliationChart: React.FC = () => {
             >
               Bar Chart
             </Button>
-
-            <select
-              data-testid="patient-select"
-              value={selectedPatient}
-              onChange={(e) => handlePatientChange(e.target.value)}
-              style={{ padding: "6px 8px", borderRadius: 4 }}
-            >
-              {patientOptions.map((name) => (
-                <option key={name} value={name}>
-                  {name === "ALL" ? "All Patients" : name}
-                </option>
-              ))}
-            </select>
           </Stack>
 
           <Paper sx={{ p: 2 }}>
-            {chartType === "BAR" ? (
-              <>
-                <BarReconciliationChart data={chartData} />
-              </>
-            ) : (
-              <>
-                {/*
-              <PieReconciliationChart
-                data={chartData}
-                selectedStatus={selectedStatus}
-                onSelectStatus={handleStatusSelect}
-              />
-              */}
-              </>
-            )}
+            <BarReconciliationChart data={chartData} />
           </Paper>
         </Box>
       )}

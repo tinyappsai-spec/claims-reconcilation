@@ -1,13 +1,28 @@
 import React from "react";
 import { useReconciliationContext } from "../context/Context";
 import { CircularProgress, Typography, Box, Grid, Paper } from "@mui/material";
+import { useMutationState } from "@tanstack/react-query";
 
 const Dashboard: React.FC = () => {
-  const { summary, loading } = useReconciliationContext();
+  const { analytics } = useReconciliationContext();
 
-  if (loading) return <CircularProgress />;
+  const uploadStatus = useMutationState({
+    filters: { mutationKey: ["uploadClaims"] },
+    select: (mutation) => mutation.state.status,
+  });
 
-  if (!summary) return <Typography>No summary data available.</Typography>;
+  const loading = uploadStatus.includes("pending");
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const summary = analytics?.summary;
+  if (!summary) return <Typography sx={{ p: 2 }}>No summary data available.</Typography>;
 
   const summaryItems = Object.entries(summary);
 
@@ -27,12 +42,12 @@ const Dashboard: React.FC = () => {
 
       <Grid container spacing={2}>
         {summaryItems.map(([key, value]) => (
-          <Grid key={key}>
-            <Paper sx={{ p: 2, textAlign: "center" }}>
+          <Grid size={{ xs: 12, sm: 6, md: 2.4 }} key={key}>
+            <Paper sx={{ p: 2, textAlign: "center", height: '100%' }}>
               <Typography variant="subtitle2" color="textSecondary">
                 {formatKey(key)}
               </Typography>
-              <Typography variant="h6">{value}</Typography>
+              <Typography variant="h6">{(value as any)}</Typography>
             </Paper>
           </Grid>
         ))}

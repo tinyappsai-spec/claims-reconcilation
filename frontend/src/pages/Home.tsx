@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Container, Typography } from "@mui/material";
 import CSVUploader from "../components/CSVUploader";
 import Dashboard from "../components/Dashboard";
-import ReconciliationChart from "../components/ReconciliationChart";
+import DashboardAnalytics from "../components/DashboardAnalytics";
 import DataTable from "../components/DataTable";
 
 const Home: React.FC = () => {
@@ -13,7 +13,7 @@ const Home: React.FC = () => {
       </Typography>
       <CSVUploader />
       <Dashboard />
-      <ReconciliationChart />
+      <DashboardAnalytics />
       {<DataTable />}
     </Container>
   );
